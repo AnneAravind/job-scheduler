@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Job Scheduler</title>
+</head>
+<body>
+  <h2>Create Job</h2>
+  <input id="task" placeholder="Task Name"/><br/>
+  <textarea id="payload">{}</textarea><br/>
+  <select id="priority">
+    <option>Low</option>
+    <option>Medium</option>
+    <option>High</option>
+  </select><br/>
+  <button onclick="createJob()">Create</button>
+
+  <h2>Jobs</h2>
+  <ul id="jobs"></ul>
+
+<script>
+async function createJob() {
+  await fetch('http://localhost:5000/jobs', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      taskName: task.value,
+      payload: JSON.parse(payload.value),
+      priority: priority.value
+    })
+  });
+  loadJobs();
+}
+
+async function loadJobs(){
+  const res = await fetch('http://localhost:5000/jobs');
+  const data = await res.json();
+  jobs.innerHTML = '';
+  data.forEach(j => {
+    jobs.innerHTML += `<li>${j.taskName} - ${j.status}
+    <button onclick="run(${j.id})">Run</button></li>`;
+  });
+}
+
+async function run(id){
+  await fetch('http://localhost:5000/run-job/'+id,{method:'POST'});
+  loadJobs();
+}
+
+loadJobs();
+</script>
+</body>
+</html>
